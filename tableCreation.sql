@@ -8,7 +8,6 @@ DROP TABLE IF EXISTS stop_times;
 DROP TABLE IF EXISTS transfers;
 DROP TABLE IF EXISTS trips;
 
-
 CREATE TABLE agency
 (
   agency_id         TEXT UNIQUE NULL,
@@ -68,6 +67,20 @@ CREATE TABLE shapes
   shape_pt_sequence INTEGER NOT NULL
 );
 
+CREATE TABLE trips
+(
+  route_id          TEXT NOT NULL,
+  service_id        TEXT NOT NULL,
+  trip_id           TEXT NOT NULL PRIMARY KEY,
+  trip_headsign     TEXT NULL,
+  direction_id      BOOLEAN NULL,
+  block_id          TEXT NULL,
+  shape_id          TEXT NULL,
+  wheelchair_accessible TEXT NULL,
+  FOREIGN KEY (route_id) REFERENCES routes(route_id),
+  FOREIGN KEY (service_id) REFERENCES calendar(service_id)
+);
+
 CREATE TABLE stop_times
 (
   trip_id           TEXT NOT NULL,
@@ -75,7 +88,8 @@ CREATE TABLE stop_times
   departure_time    INTERVAL NOT NULL,
   stop_id           TEXT NOT NULL,
   stop_sequence     INTEGER NOT NULL,
-  stop_headsign     TEXT NULL
+  stop_headsign     TEXT NULL,
+  FOREIGN KEY (trip_id) REFERENCES trips(trip_id)
 );
 
 CREATE TABLE transfers
@@ -83,16 +97,4 @@ CREATE TABLE transfers
   from_stop_id      TEXT NOT NULL,
   to_stop_id        TEXT NOT NULL,
   transfer_type     INTEGER NOT NULL
-);
-
-CREATE TABLE trips
-(
-  route_id          text NOT NULL,
-  service_id        text NOT NULL,
-  trip_id           text NOT NULL PRIMARY KEY,
-  trip_headsign     text NULL,
-  direction_id      boolean NULL,
-  block_id          text NULL,
-  shape_id          text NULL,
-  wheelchair_accessible text NULL
 );

@@ -13,6 +13,7 @@ def linestring_to_points(line_string):
         (x,y) = point.split()
         xs.append(float(x))
         ys.append(float(y))
+    return xs,ys
 
 
 scale = 1/60000
@@ -34,8 +35,8 @@ cursor.execute(sql)
 results = cursor.fetchall()
 
 x,y = [],[]
-
 for row in results :
+    print(row)
     xs,ys = linestring_to_points(row[0])
     x = x + xs
     y = y + ys

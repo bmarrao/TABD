@@ -96,23 +96,6 @@ with open("data/calendar_dates.txt", 'r') as f:
         # Insert values into the database
         cursor.execute("INSERT INTO calendar_dates (service_id, date, exception_type) VALUES (%s, %s, %s)", (service_id, date, exception_type))
 
-with open("data/stop_times.txt", 'r') as f:
-    # Skip the header line
-    next(f)
-    # Read the file line by line
-    for line in f:
-        # Split the line into fields
-        fields = line.strip().split(",")
-        # Extract values for each field
-        trip_id = fields[0]
-        arrival_time = fields[1]
-        departure_time = fields[2]
-        stop_id = fields[3]
-        stop_sequence = int(fields[4])
-        stop_headsign = fields[5] if len(fields) > 5 else None
-        
-        # Insert values into the database
-        cursor.execute("INSERT INTO stop_times (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign) VALUES (%s, %s, %s, %s, %s, %s)", (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign))
 
 with open("data/transfers.txt", 'r') as f:
     # Skip the header line
@@ -150,6 +133,24 @@ with open("data/trips.txt", 'r') as f:
         
         # Insert values into the database
         cursor.execute("INSERT INTO trips (route_id, direction_id, service_id, trip_id, trip_headsign, wheelchair_accessible, block_id, shape_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (route_id, direction_id, service_id, trip_id, trip_headsign, wheelchair_accessible, block_id, shape_id))
+
+with open("data/stop_times.txt", 'r') as f:
+    # Skip the header line
+    next(f)
+    # Read the file line by line
+    for line in f:
+        # Split the line into fields
+        fields = line.strip().split(",")
+        # Extract values for each field
+        trip_id = fields[0]
+        arrival_time = fields[1]
+        departure_time = fields[2]
+        stop_id = fields[3]
+        stop_sequence = int(fields[4])
+        stop_headsign = fields[5] if len(fields) > 5 else None
+        
+        # Insert values into the database
+        cursor.execute("INSERT INTO stop_times (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign) VALUES (%s, %s, %s, %s, %s, %s)", (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign))
 
 
 # Commit changes and close connection
