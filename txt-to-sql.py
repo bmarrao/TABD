@@ -1,5 +1,5 @@
 import psycopg2
-
+#psql -U brenin -d postgres
 # Connect to the database
 conn = psycopg2.connect("dbname=postgres user=brenin")
 cursor = conn.cursor()
@@ -57,7 +57,7 @@ with open("data/stops.txt", 'r') as f:
         stop_url = fields[6]
         
         # Insert values into the database
-        cursor.execute("INSERT INTO stops (stop_id, stop_code, stop_name,  stop_location, zone_id, stop_url) VALUES (%s, %s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s)", (stop_id, stop_code, stop_name, stop_lon, stop_lat, zone_id, stop_url))
+        cursor.execute("INSERT INTO stops (stop_id, stop_code, stop_name, stop_location, zone_id, stop_url) VALUES (%s, %s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::POINT, %s, %s)", (stop_id, stop_code, stop_name, stop_lon, stop_lat, zone_id, stop_url))
 
 with open("data/calendar.txt", 'r') as f:
     # Skip the header line
@@ -129,6 +129,28 @@ with open("data/transfers.txt", 'r') as f:
 
         # Insert values into the database
         cursor.execute("INSERT INTO transfers (from_stop_id, to_stop_id, transfer_type) VALUES (%s, %s, %s)", (from_stop_id, to_stop_id, transfer_type))
+        
+with open("data/trips.txt", 'r') as f:
+    # Skip the header line
+    next(f)
+    # Read the file line by line
+    for line in f:
+        # Split the line into fields
+        route_id, direction_id, service_id, trip_id, trip_headsign, wheelchair_accessible, block_id, shape_id = line.strip().split(",")
+        
+        # Convert direction_id to boolean
+        direction_id = bool(int(direction_id))
+        
+        # Convert wheelchair_accessible to boolean
+        wheelchair_accessible = bool(int(wheelchair_accessible))
+        
+        # Check for empty strings and convert to None
+        block_id = block_id if block_id else None
+        shape_id = shape_id if shape_id else None
+        
+        # Insert values into the database
+        cursor.execute("INSERT INTO trips (route_id, direction_id, service_id, trip_id, trip_headsign, wheelchair_accessible, block_id, shape_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (route_id, direction_id, service_id, trip_id, trip_headsign, wheelchair_accessible, block_id, shape_id))
+
 
 # Commit changes and close connection
 conn.commit()

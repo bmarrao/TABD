@@ -6,6 +6,8 @@ DROP TABLE IF EXISTS calendar_dates;
 DROP TABLE IF EXISTS shapes;
 DROP TABLE IF EXISTS stop_times;
 DROP TABLE IF EXISTS transfers;
+DROP TABLE IF EXISTS trips;
+
 
 CREATE TABLE agency
 (
@@ -81,4 +83,16 @@ CREATE TABLE transfers
   from_stop_id      TEXT NOT NULL,
   to_stop_id        TEXT NOT NULL,
   transfer_type     INTEGER NOT NULL
+);
+
+CREATE TABLE trips
+(
+  route_id          text NOT NULL,
+  service_id        text NOT NULL,
+  trip_id           text NOT NULL PRIMARY KEY,
+  trip_headsign     text NULL,
+  direction_id      boolean NULL,
+  block_id          text NULL,
+  shape_id          text NULL,
+  wheelchair_accessible text NULL
 );
