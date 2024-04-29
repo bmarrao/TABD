@@ -1,5 +1,5 @@
 from_stop_id,to_stop_id,transfer_type
-ALFG5,FTN2,3
+ALFG5,FTN2,3    
 ALM1,ESPL1,3
 MCE3,NOC,3
 MCE4,NOC,3
