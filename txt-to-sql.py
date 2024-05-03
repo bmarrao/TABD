@@ -21,7 +21,53 @@ def normalize_time(time_str):
 
 
 
+with open("data/stops.txt", 'r') as f:
+    next(f)
+    for line in f:
+        fields = line.strip().split(",")
+        stop_id = fields[0]
+        stop_code = fields[1]
+        stop_name = fields[2]
+        stop_lat = float(fields[3])
+        stop_lon = float(fields[4])
+        zone_id = fields[5]
+        stop_url = fields[6]
+        cursor.execute("INSERT INTO stops (stop_id, stop_code, stop_name, stop_location, zone_id, stop_url) VALUES (%s, %s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::POINT, %s, %s)", (stop_id, stop_code, stop_name, stop_lon, stop_lat, zone_id, stop_url))
 
+conn.commit()
+
+with open("data/routes.txt", 'r') as f:
+    next(f)
+    for line in f:
+        fields = line.strip().split(",")
+        route_id = fields[0]
+        route_short_name = fields[1]
+        route_long_name = fields[2]
+        route_type = int(fields[4])
+        route_url = fields[5]
+        route_color = fields[6]
+        route_text_color = fields[7]
+        cursor.execute("INSERT INTO routes (route_id, route_short_name, route_long_name, route_type, route_url, route_color, route_text_color) VALUES (%s, %s, %s, %s, %s, %s, %s)", (route_id, route_short_name, route_long_name, route_type, route_url, route_color, route_text_color))
+conn.commit()
+
+with open("data/calendar.txt", 'r') as f:
+    next(f)
+    for line in f:
+        fields = line.strip().split(",")
+        service_id = fields[0]
+        monday = fields[1] == "1"
+        tuesday = fields[2] == "1"
+        wednesday = fields[3] == "1"
+        thursday = fields[4] == "1"
+        friday = fields[5] == "1"
+        saturday = fields[6] == "1"
+        sunday = fields[7] == "1"
+        start_date_str = fields[8]
+        end_date_str = fields[9]
+        start_date = datetime.strptime(start_date_str, "%Y%m%d").date()
+        end_date = datetime.strptime(end_date_str, "%Y%m%d").date()
+        cursor.execute("INSERT INTO calendar (service_id, monday, tuesday, wednesday, thursday, friday, saturday, sunday, start_date, end_date) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (service_id, monday, tuesday, wednesday, thursday, friday, saturday, sunday, start_date, end_date))
+conn.commit()
 
 
 with open("data/shapes.txt", 'r') as f:
@@ -48,31 +94,7 @@ with open("data/shapes.txt", 'r') as f:
         linestring += ")"
         cursor.execute("INSERT INTO shapes (shape_id, shape_linestring) VALUES (%s, ST_GeomFromText(%s, 4326))", (shape_id, linestring))
 
-with open("data/routes.txt", 'r') as f:
-    next(f)
-    for line in f:
-        fields = line.strip().split(",")
-        route_id = fields[0]
-        route_short_name = fields[1]
-        route_long_name = fields[2]
-        route_type = int(fields[4])
-        route_url = fields[5]
-        route_color = fields[6]
-        route_text_color = fields[7]
-        cursor.execute("INSERT INTO routes (route_id, route_short_name, route_long_name, route_type, route_url, route_color, route_text_color) VALUES (%s, %s, %s, %s, %s, %s, %s)", (route_id, route_short_name, route_long_name, route_type, route_url, route_color, route_text_color))
-
-with open("data/stops.txt", 'r') as f:
-    next(f)
-    for line in f:
-        fields = line.strip().split(",")
-        stop_id = fields[0]
-        stop_code = fields[1]
-        stop_name = fields[2]
-        stop_lat = float(fields[3])
-        stop_lon = float(fields[4])
-        zone_id = fields[5]
-        stop_url = fields[6]
-        cursor.execute("INSERT INTO stops (stop_id, stop_code, stop_name, stop_location, zone_id, stop_url) VALUES (%s, %s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::POINT, %s, %s)", (stop_id, stop_code, stop_name, stop_lon, stop_lat, zone_id, stop_url))
+conn.commit()
 
 with open("data/transfers.txt", 'r') as f:
 
@@ -84,23 +106,7 @@ with open("data/transfers.txt", 'r') as f:
         transfer_type = int(fields[2])
 
         cursor.execute("INSERT INTO transfers (from_stop_id, to_stop_id, transfer_type) VALUES (%s, %s, %s)", (from_stop_id, to_stop_id, transfer_type))
-with open("data/calendar.txt", 'r') as f:
-    next(f)
-    for line in f:
-        fields = line.strip().split(",")
-        service_id = fields[0]
-        monday = fields[1] == "1"
-        tuesday = fields[2] == "1"
-        wednesday = fields[3] == "1"
-        thursday = fields[4] == "1"
-        friday = fields[5] == "1"
-        saturday = fields[6] == "1"
-        sunday = fields[7] == "1"
-        start_date_str = fields[8]
-        end_date_str = fields[9]
-        start_date = datetime.strptime(start_date_str, "%Y%m%d").date()
-        end_date = datetime.strptime(end_date_str, "%Y%m%d").date()
-        cursor.execute("INSERT INTO calendar (service_id, monday, tuesday, wednesday, thursday, friday, saturday, sunday, start_date, end_date) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (service_id, monday, tuesday, wednesday, thursday, friday, saturday, sunday, start_date, end_date))
+conn.commit()
 
 with open("data/calendar_dates.txt", 'r') as f:
     next(f)
@@ -111,20 +117,7 @@ with open("data/calendar_dates.txt", 'r') as f:
         exception_type = int(fields[2])
         date = datetime.strptime(date_str, "%Y%m%d").date()
         cursor.execute("INSERT INTO calendar_dates (service_id, date, exception_type) VALUES (%s, %s, %s)", (service_id, date, exception_type))
-
-with open("data/stop_times.txt", 'r') as f:
-    next(f)
-    for line in f:
-        fields = line.strip().split(",")
-        trip_id = fields[0]
-        arrival_time_str = fields[1]
-        departure_time_str = fields[2]
-        stop_id = fields[3]
-        stop_sequence = int(fields[4])
-        stop_headsign = fields[5] if len(fields) > 5 else None
-        arrival_time = normalize_time(arrival_time_str)
-        departure_time = normalize_time(departure_time_str)
-        cursor.execute("INSERT INTO stop_times (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign) VALUES (%s, %s, %s, %s, %s, %s)", (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign))
+conn.commit()
 
 with open("data/trips.txt", 'r') as f:
 
@@ -142,24 +135,24 @@ with open("data/trips.txt", 'r') as f:
         
         cursor.execute("INSERT INTO trips (route_id, direction_id, service_id, trip_id, trip_headsign, wheelchair_accessible, block_id, shape_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (route_id, direction_id, service_id, trip_id, trip_headsign, wheelchair_accessible, block_id, shape_id))
 
+conn.commit()
+
 with open("data/stop_times.txt", 'r') as f:
     next(f)
     for line in f:
         fields = line.strip().split(",")
-        # Extract values for each field
         trip_id = fields[0]
         arrival_time_str = fields[1]
         departure_time_str = fields[2]
         stop_id = fields[3]
         stop_sequence = int(fields[4])
         stop_headsign = fields[5] if len(fields) > 5 else None
-        
-        # Normalize time values
         arrival_time = normalize_time(arrival_time_str)
         departure_time = normalize_time(departure_time_str)
-        
-        # Insert values into the database
         cursor.execute("INSERT INTO stop_times (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign) VALUES (%s, %s, %s, %s, %s, %s)", (trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign))
+
+conn.commit()
+
 
 
 conn.commit()
