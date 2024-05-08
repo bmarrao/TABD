@@ -21,18 +21,18 @@ def normalize_time(time_str):
 
 
 
-with open("data/stops.txt", 'r') as f:
-    next(f)
-    for line in f:
-        fields = line.strip().split(",")
-        stop_id = fields[0]
-        stop_code = fields[1]
-        stop_name = fields[2]
-        stop_lat = float(fields[3])
-        stop_lon = float(fields[4])
-        zone_id = fields[5]
-        stop_url = fields[6]
-        cursor.execute("INSERT INTO stops (stop_id, stop_code, stop_name, stop_location, zone_id, stop_url) VALUES (%s, %s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::POINT, %s, %s)", (stop_id, stop_code, stop_name, stop_lon, stop_lat, zone_id, stop_url))
+    with open("data/stops.txt", 'r') as f:
+        next(f)
+        for line in f:
+            fields = line.strip().split(",")
+            stop_id = fields[0]
+            stop_code = fields[1]
+            stop_name = fields[2]
+            stop_lat = float(fields[3])
+            stop_lon = float(fields[4])
+            zone_id = fields[5]
+            stop_url = fields[6]
+            cursor.execute("INSERT INTO stops (stop_id, stop_code, stop_name, stop_location, zone_id, stop_url) VALUES (%s, %s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::POINT, %s, %s)", (stop_id, stop_code, stop_name, stop_lon, stop_lat, zone_id, stop_url))
 
 conn.commit()
 
