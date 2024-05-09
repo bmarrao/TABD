@@ -10,7 +10,6 @@ results = cursor_psql.fetchall()
 xs = []
 ys = []
 for row in results:
-    print (row)
     point_string = row[0]
     point_string = point_string[6:-1]
     (x, y) = point_string.split()

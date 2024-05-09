@@ -28,28 +28,20 @@ height_in_inches = (ys_max-ys_min)/0.0254*1.1
 
 fig,ax = plt.subplots(figsize =(width_in_inches*scale,height_in_inches*scale))
 ax.set(xlim=(xs_min,xs_max),ylim=(ys_min,ys_max))
-sql = """select st_astext(ST_Transform(shape_linestring, 3763)) from shapes where shape_id='1_0_1_shp' """
+sql = "SELECT st_astext(ST_Transform(shape_linestring, 3763)) FROM shapes"
 
 cursor.execute(sql)
 
 results = cursor.fetchall()
+
 x,y = [],[]
 for row in results :
+    print(row)
     xs,ys = linestring_to_points(row[0])
     x = x + xs
     y = y + ys
 
-print(x,y)
-sql = """select st_astext(ST_Transform(shape_linestring, 3763)) from shapes where shape_id='1_1_1_shp' """
-
-cursor.execute(sql)
-
-results = cursor.fetchall()
-for row in results :
-    xs,ys = linestring_to_points(row[0])
-    x = x + xs
-    y = y + ys
-scat = ax.scatter(x[0],y[0],s=1)
+scat = ax.scatter(x[0],y[0],s=10)
 anim = FuncAnimation(fig,animate, interval=1,frames=len(y)-1)
 
 plt.draw()
