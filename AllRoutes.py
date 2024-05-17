@@ -5,7 +5,7 @@ from matplotlib.cm import get_cmap
 
 conn = psycopg2.connect("dbname=postgres user=brenin")
 cursor_psql = conn.cursor()
-sql = "SELECT st_astext(ST_Transform(shape_linestring, 3763)) FROM shapes"
+sql = "SELECT st_astext(proj_linestring) FROM shapes"
 cursor_psql.execute(sql)
 results = cursor_psql.fetchall()
 

@@ -7,9 +7,10 @@ conn = psycopg2.connect("dbname=postgres user=brenin")
 cursor_psql = conn.cursor()
 
 sql_freguesias = """
-    SELECT ST_AsText(ST_Simplify(proj_boundary, 0.5)) AS geom 
+    SELECT freguesia, ST_AsText(ST_Simplify(proj_boundary, 0.5)) AS geom 
     FROM cont_aad_caop2018 
-    WHERE concelho='PORTO';
+    WHERE concelho IN ('PORTO', 'MATOSINHOS', 'MAIA', 'GAIA','GONDOMAR','VILA NOVA DE GAIA','VALONGO');
+
 """
 cursor_psql.execute(sql_freguesias)
 results_freguesias = cursor_psql.fetchall()

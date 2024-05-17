@@ -15,7 +15,7 @@ cursor_psql.execute(sql_freguesias)
 results_freguesias = cursor_psql.fetchall()
 
 sql_stops = """
-    SELECT ST_AsText(ST_Transform(ST_SetSRID(stop_location::geometry, 4326), 3763)) 
+    SELECT ST_AsText(proj_stop_location) 
     FROM stops
 """
 cursor_psql.execute(sql_stops)

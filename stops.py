@@ -4,7 +4,7 @@ import psycopg2
 scale = 1/30000
 conn = psycopg2.connect("dbname=postgres user=brenin")
 cursor_psql = conn.cursor()
-sql = "SELECT st_astext(ST_Transform(ST_SetSRID(stop_location::geometry, 4326), 3763)) FROM stops"
+sql = "SELECT st_astext(proj_stop_location) FROM stops"
 cursor_psql.execute(sql)
 results = cursor_psql.fetchall()
 xs = []

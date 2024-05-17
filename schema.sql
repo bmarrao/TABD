@@ -12,7 +12,7 @@ CREATE TABLE stops
   stop_id           TEXT PRIMARY KEY,
   stop_code         TEXT NULL,
   stop_name         TEXT NOT NULL,
-  stop_location     POINT NOT NULL, 
+  stop_location     geometry(Point),
   zone_id           TEXT NULL,
   stop_url          TEXT NULL
 );
@@ -95,3 +95,9 @@ CREATE TABLE transfers
   FOREIGN KEY (from_stop_id) REFERENCES stops(stop_id),
   FOREIGN KEY (to_stop_id) REFERENCES stops(stop_id)
 );
+
+alter table shapes add proj_linestring geometry(LineString,3763);
+update shapes set proj_linestring = st_transform(shape_linestring::geometry,3763);
+
+alter table stops add proj_stop_location geometry(Point,3763);
+update stops set proj_stop_location = st_transform(stop_location::geometry,3763);
