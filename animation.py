@@ -22,23 +22,18 @@ conn = psycopg2.connect("dbname=postgres user=brenin")
 cursor = conn.cursor()
 
 
-sql_freguesias = """
-    SELECT freguesia, ST_AsText(ST_Simplify(proj_boundary, 0.5)) AS geom 
-    FROM cont_aad_caop2018 
-    WHERE concelho IN ('PORTO', 'MATOSINHOS', 'MAIA', 'GAIA','GONDOMAR','VILA NOVA DE GAIA','VALONGO');
 
-"""
-cursor.execute(sql_freguesias)
-results_freguesias = cursor.fetchall()
-
-freguesias_boundaries = []
-for freguesia, geom_wkt in results_freguesias:
-    boundary_coords = []
-    for part in geom_wkt.split('((')[1].split('))')[0].split(','):
-        x, y = part.strip(')').split()
-        boundary_coords.append((float(x), float(y)))
-    freguesias_boundaries.append(boundary_coords)
-
+sql = "SELECT st_astext(proj_stop_location) FROM stops"
+cursor.execute(sql)
+results_stops = cursor.fetchall()
+all_stops_xs = []
+all_stops_ys = []
+for row in results_stops:
+    point_string = row[0]
+    point_string = point_string[6:-1]
+    (x, y) = point_string.split()
+    all_stops_xs.append(float(x))
+    all_stops_ys.append(float(y))  
 
 sql = "SELECT st_astext(proj_linestring) FROM shapes"
 cursor.execute(sql)
@@ -63,8 +58,8 @@ for row in results :
     if(min(xs) > xs_min):
         xs_min= min(xs)
     print(len(xs))
-    x = x + xs
-    y = y + ys
+    x = x + xs.append
+    y = y + ys.append
 
 xs_max += 20000
 xs_min -= 20000
@@ -79,6 +74,7 @@ fig,ax = plt.subplots(figsize =(10,8))
 
 
 ax.set(xlim=(xs_min,xs_max),ylim=(ys_min,ys_max))
+
 
 
 scat = ax.scatter(x[0],y[0],s=10)

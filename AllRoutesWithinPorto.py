@@ -16,12 +16,15 @@ sql_freguesias = """
 cursor_psql.execute(sql_freguesias)
 results_freguesias = cursor_psql.fetchall()
 
-sql_routes = "SELECT ST_AsText(ST_Transform(shape_linestring, 3763)) FROM shapes"
+sql_routes = "SELECT ST_AsText(proj_linestring) FROM shapes"
 cursor_psql.execute(sql_routes)
 results_routes = cursor_psql.fetchall()
 
 cursor_psql.close()
 conn.close()
+fig, ax = plt.subplots()
+
+'''
 
 freguesias_boundaries = []
 for freguesia, geom_wkt in results_freguesias:
@@ -31,14 +34,13 @@ for freguesia, geom_wkt in results_freguesias:
         boundary_coords.append((float(x), float(y)))
     freguesias_boundaries.append(boundary_coords)
 
-fig, ax = plt.subplots()
 
 
 for boundary_coords in freguesias_boundaries:
     x, y = zip(*boundary_coords)
     ax.plot(x, y, color='blue')
 
-    
+'''
 num_routes = len(results_routes)
 cmap = plt.cm.hsv  
 norm = Normalize(vmin=0, vmax=num_routes-1)
@@ -54,7 +56,6 @@ for i, row in enumerate(results_routes):
         ys.append(float(y))  
     color = cmap(norm(i))
     ax.plot(xs, ys, color=color, marker='o', markersize=1)
-
 ax.set_title('Freguesias within the Municipality of Porto with Stop Locations')
 ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
