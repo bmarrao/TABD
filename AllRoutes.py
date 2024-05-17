@@ -27,6 +27,6 @@ for i, row in enumerate(results):
         xs.append(float(x))
         ys.append(float(y))  
     color = cmap(norm(i))
-    ax.plot(xs, ys, color=color, marker='o', markersize=5)
+    ax.plot(xs, ys, color=color, marker='o', markersize=1)
 
 plt.show()

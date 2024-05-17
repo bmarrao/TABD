@@ -47,7 +47,7 @@ for boundary_coords in freguesias_boundaries:
     x, y = zip(*boundary_coords)
     ax.plot(x, y, color='blue')
 
-ax.scatter(xs, ys, color='red', s=5, label='Stop Locations')
+ax.scatter(xs, ys, color='red', s=1, label='Stop Locations')
 
 ax.set_title('Freguesias within the Municipality of Porto with Stop Locations')
 ax.set_xlabel('Longitude')

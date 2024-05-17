@@ -21,6 +21,6 @@ height_in_inches = ((max(ys) - min(ys)) / 0.0254) * 1.1
 
 fig = plt.figure(figsize=(width_in_inches * scale, height_in_inches * scale))
 
-plt.scatter(xs, ys, s=5)
+plt.scatter(xs, ys, s=1)
 
 plt.show()
