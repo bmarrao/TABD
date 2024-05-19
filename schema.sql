@@ -55,7 +55,7 @@ CREATE TABLE calendar_dates
 CREATE TABLE shapes
 (
   shape_id          TEXT PRIMARY KEY,
-  shape_linestring  geometry(LineString)
+  shape_linestring geometry(LineString, 4326)
 );
 
 CREATE TABLE trips

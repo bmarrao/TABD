@@ -24,7 +24,6 @@ cursor_psql.close()
 conn.close()
 fig, ax = plt.subplots()
 
-'''
 
 freguesias_boundaries = []
 for freguesia, geom_wkt in results_freguesias:
@@ -40,7 +39,6 @@ for boundary_coords in freguesias_boundaries:
     x, y = zip(*boundary_coords)
     ax.plot(x, y, color='blue')
 
-'''
 num_routes = len(results_routes)
 cmap = plt.cm.hsv  
 norm = Normalize(vmin=0, vmax=num_routes-1)

@@ -74,32 +74,38 @@ with open("data/calendar.txt", 'r') as f:
         cursor.execute("INSERT INTO calendar (service_id, monday, tuesday, wednesday, thursday, friday, saturday, sunday, start_date, end_date) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (service_id, monday, tuesday, wednesday, thursday, friday, saturday, sunday, start_date, end_date))
 conn.commit()
 
-
 with open("data/shapes.txt", 'r') as f:
-    next(f)
-    shape_id = None
-    shape_points = []
-    for line in f:
-        fields = line.strip().split(",")
-        current_shape_id = fields[0]
-        shape_pt_lat = float(fields[1])
-        shape_pt_lon = float(fields[2])
-        if current_shape_id != shape_id:
-            if shape_points:
-                linestring = "LINESTRING("
-                linestring += ",".join([f"{lon} {lat}" for lat, lon in shape_points])
-                linestring += ")"
-                cursor.execute("INSERT INTO shapes (shape_id, shape_linestring) VALUES (%s, ST_GeomFromText(%s, 4326))", (shape_id, linestring))
-            shape_id = current_shape_id
-            shape_points = []
-        shape_points.append((shape_pt_lon, shape_pt_lat))
-    if shape_points:
-        linestring = "LINESTRING("
-        linestring += ",".join([f"{lon} {lat}" for lat, lon in shape_points])
-        linestring += ")"
-        cursor.execute("INSERT INTO shapes (shape_id, shape_linestring) VALUES (%s, ST_GeomFromText(%s, 4326))", (shape_id, linestring))
+        next(f) 
+        shape_id = None
+        shape_points = []
+
+        for line in f:
+            fields = line.strip().split(",")
+            current_shape_id = fields[0]
+            shape_pt_lat = float(fields[1])
+            shape_pt_lon = float(fields[2])
+
+            if current_shape_id != shape_id:
+                if shape_points:
+                    linestring = "LINESTRING(" + ",".join([f"{lat} {lon}" for lat, lon in shape_points]) + ")"
+                    cursor.execute(
+                        "INSERT INTO shapes (shape_id, shape_linestring) VALUES (%s, ST_GeomFromText(%s, 4326))",
+                        (shape_id, linestring)
+                    )
+                shape_id = current_shape_id
+                shape_points = []
+
+            shape_points.append((shape_pt_lon, shape_pt_lat))
+
+        if shape_points:
+            linestring = "LINESTRING(" + ",".join([f"{lat} {lon}" for lat, lon in shape_points]) + ")"
+            cursor.execute(
+                "INSERT INTO shapes (shape_id, shape_linestring) VALUES (%s, ST_GeomFromText(%s, 4326))",
+                (shape_id, linestring)
+            )
 
 conn.commit()
+
 
 with open("data/transfers.txt", 'r') as f:
 
