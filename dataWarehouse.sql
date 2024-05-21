@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS dw_time CASCADE;
 DROP TABLE IF EXISTS dw_taxi CASCADE;
-DROP TABLE IF EXISTS dw_location CASCADE;
+DROP TABLE IF EXISTS dw_stops CASCADE;
 DROP TABLE IF EXISTS dw_facts CASCADE;
 
 CREATE TABLE dw_taxi 
@@ -33,7 +33,7 @@ ORDER BY 1 DESC;
 
 CREATE TABLE dw_stops
 (
-    stop_id SERIAL PRIMARY KEY,
+    stop_id TEXT PRIMARY KEY,
     stop_name         TEXT NOT NULL,
     location     geometry(Point),
     freguesia character varying(255),
@@ -42,17 +42,20 @@ CREATE TABLE dw_stops
 
 INSERT INTO dw_stops(stop_id, stop_name, location, freguesia , concelho)
 SELECT DISTINCT 
-    s.stop_id,
-    s.stop_name,
-    s.stop_location,
-    p.freguesia,
-    p.concelho
-FROM stops as s,
-    (select freguesia, concelho, st_distance(s.stop_location, p.proj_boundary) 
-    from cont_aad_caop2018 
+    stop_id,
+    stop_name,
+    proj_stop_location,
+    (select freguesia 
+    from cont_aad_caop2018 as p
     where distrito = 'PORTO' 
-    ORDER BY 3 asc
-    LIMIT 1) as p
+    ORDER BY st_distance(proj_stop_location, p.proj_boundary) asc
+    LIMIT 1),
+    (select concelho 
+    from cont_aad_caop2018 as p
+    where distrito = 'PORTO' 
+    ORDER BY st_distance(proj_stop_location, p.proj_boundary) asc
+    LIMIT 1)
+FROM stops;
 CREATE TABLE dw_facts (
     time_id INTEGER REFERENCES dw_time(time_id),
     taxi_id INTEGER REFERENCES dw_taxi(taxi_id),
