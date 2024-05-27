@@ -2,6 +2,8 @@ DROP TABLE IF EXISTS dw_time CASCADE;
 DROP TABLE IF EXISTS dw_taxi CASCADE;
 DROP TABLE IF EXISTS dw_stops CASCADE;
 DROP TABLE IF EXISTS dw_facts CASCADE;
+DROP TABLE IF EXISTS pg_routes CASCADE;
+
 
 CREATE TABLE dw_taxi 
 (
@@ -66,7 +68,7 @@ CREATE TABLE dw_facts (
 );
 -- pg routing if doesnt work take out direction and leave the same way as before
 CREATE TABLE pg_routes (
-    route_id integer NOT NULL,
+    route_id TEXT NOT NULL,
     direction integer NOT NULL,
     source integer,
     target integer,
@@ -78,9 +80,9 @@ CREATE TABLE pg_routes (
 
 INSERT INTO pg_routes (route_id, direction, geom)
 SELECT 
-    CAST(split_part(shape_id, '_', 1) AS INTEGER) AS route_id,
-    CAST(split_part(shape_id, '_', 2) AS INTEGER) AS direction,
-    shape_linestring
+    split_part(shape_id, '_', 1),
+    split_part(shape_id, '_', 2)direction,
+    proj_linestring
 FROM shapes;
 -- THE GEOMETRY OF THE SAME ROUTE GOING FORWARDS AND BACKWARDS IS DIFFERENT DO I JUST DO ONE ?
 SELECT pgr_nodeNetwork('pg_routes', 0.00001, 'geom', 'route_id');
@@ -90,7 +92,7 @@ SET cost = ST_Length(geom::geography),
     reverse_cost = ST_Length(geom::geography);
 
 SELECT pgr_createTopology('pg_routes', 0.00001, 'geom', 'route_id');
-
+'''
 INSERT INTO dw_facts(time_id, taxi_id, initial_stop, final_stop)
 SELECT DISTINCT 
     (SELECT time_id 
@@ -108,3 +110,4 @@ SELECT DISTINCT
      ORDER BY st_distance(st_transform(initial_point :: geometry,3763), s.location) ASC 
      LIMIT 1)
 FROM taxi_services ts;
+'''
