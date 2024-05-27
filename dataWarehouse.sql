@@ -110,13 +110,7 @@ FROM
         )
     ) AS dijk;
 
-INSERT INTO dw_time(hour, date, month)
-SELECT DISTINCT 
-    extract(hour from to_timestamp(initial_ts)),
-    date(to_timestamp(initial_ts)),
-    extract(month from to_timestamp(initial_ts))
-FROM taxi_services 
-ORDER BY 1 DESC;
+
 
 CREATE TABLE dw_facts (
     time_id INTEGER REFERENCES dw_time(time_id),
@@ -129,97 +123,4 @@ CREATE TABLE dw_facts (
 );
 
 
-INSERT INTO dw_facts(time_id, taxi_id, initial_stop,final_stop,number_of_trips)
-SELECT DISTINCT 
-    (
-        SELECT 
-            time_id 
-        from 
-            dw_time as t
-        WHERE 
-            t.date = date(to_timestamp(ts.initial_ts)),
-            t.hour = extract(hour from to_timestamp(ts.initial_ts)),
-            t.month= extract(month from to_timestamp(ts.initial_ts))
-    ),
-    ts.taxi_id,
-    (
-        SELECT 
-            stop_id 
-        from 
-            dw_stops as st 
-        ORDER BY 
-            st_distance(location, ST_Transform(ts.initial_point::geometry, 3763)) 
-        asc
-        LIMIT 
-        1
-    ),
-    (
-        SELECT 
-            stop_id 
-        from 
-            dw_stops as st 
-        ORDER BY 
-            st_distance(location, ST_Transform(ts.final_point::geometry, 3763)) 
-        asc
-        LIMIT 
-        1
-    ),
-    count(*)
-    ,
-    (
-        SELECT
-            seq 
-        FROM 
-            dw_routes _as rt
-        WHERE
-                rt.initial_stop =
-                (
-                    SELECT 
-                        stop_id 
-                    from 
-                        dw_stops as st 
-                    ORDER BY 
-                        st_distance(location, ST_Transform(ts.initial_point::geometry, 3763)) 
-                    asc
-                    LIMIT 
-                    1
-                ),
-                rt.final_stop =  
-                (
-                    SELECT 
-                        stop_id 
-                    from 
-                        dw_stops as st 
-                    ORDER BY 
-                        st_distance(location, ST_Transform(ts.final_point::geometry, 3763)) 
-                    asc
-                    LIMIT 
-                    1
-                ),
 
-             
-        ORDER BY seq DESC 
-        LIMIT 1
-    )
-
-
-
-FROM taxi_services as ts
-ORDER BY 1 DESC;
-
-INSERT INTO dw_stops(stop_id, stop_name, location, freguesia , concelho)
-SELECT DISTINCT 
-    stop_id,
-    stop_name,
-    proj_stop_location,
-    (select freguesia 
-    from cont_aad_caop2018 as p
-    where distrito = 'PORTO' 
-    ORDER BY st_distance(proj_stop_location, p.proj_boundary) asc
-    LIMIT 1),
-    (select concelho 
-    from cont_aad_caop2018 as p
-    where distrito = 'PORTO' 
-    ORDER BY st_distance(proj_stop_location, p.proj_boundary) asc
-    LIMIT 1)
-FROM stops;
