@@ -101,3 +101,4 @@ update shapes set proj_linestring = st_transform(shape_linestring::geometry,3763
 
 alter table stops add proj_stop_location geometry(Point,3763);
 update stops set proj_stop_location = st_transform(stop_location::geometry,3763);
+
