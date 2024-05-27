@@ -123,4 +123,57 @@ CREATE TABLE dw_facts (
 );
 
 
+INSERT INTO dw_facts(time_id, taxi_id, initial_stop, final_stop, number_of_trips, number_of_routes)
+SELECT 
+    (
+        SELECT 
+            time_id 
+        FROM 
+            dw_time t
+        WHERE 
+            t.date = date(to_timestamp(ts.initial_ts)) AND
+            t.hour = extract(hour from to_timestamp(ts.initial_ts)) AND
+            t.month = extract(month from to_timestamp(ts.initial_ts))
+        LIMIT 1
+    ),
+    ts.taxi_id,
+    first_stop.stop_id,
+    last_stop.stop_id,
+    count(*),
+    (
+        SELECT 
+            seq 
+        FROM 
+            dw_routes rt
+        WHERE 
+            rt.initial_stop = first_stop.stop_id AND
+            rt.final_stop = last_stop.stop_id
+        ORDER BY 
+            seq DESC 
+        LIMIT 1
+    )
+FROM 
+    taxi_services ts,
+    LATERAL (
+        SELECT 
+            stop_id 
+        FROM 
+            dw_stops st 
+        ORDER BY 
+            st_distance(location, ST_Transform(ts.initial_point::geometry, 3763)) ASC
+        LIMIT 
+            1
+    ) as first_stop,
+    LATERAL (
+        SELECT 
+            stop_id 
+        FROM 
+            dw_stops st 
+        ORDER BY 
+            st_distance(location, ST_Transform(ts.final_point::geometry, 3763)) ASC
+        LIMIT 
+            1
+    ) as last_stop 
+GROUP BY 
+    ts.taxi_id, first_stop.stop_id, last_stop.stop_id, ts.initial_ts;
 
