@@ -42,6 +42,7 @@ CREATE TABLE dw_stops
     concelho character varying(255)
 );
 
+
 INSERT INTO dw_stops(stop_id, stop_name, location, freguesia , concelho)
 SELECT DISTINCT 
     stop_id,
@@ -58,12 +59,59 @@ SELECT DISTINCT
     ORDER BY st_distance(proj_stop_location, p.proj_boundary) asc
     LIMIT 1)
 FROM stops;
+
+
+CREATE TABLE dw_routes 
+(
+    seq INTEGER,
+    node INTEGER,
+    edge INTEGER,
+    cost DOUBLE PRECISION,
+    initial_stop TEXT REFERENCES dw_stops(stop_id),
+    final_stop TEXT REFERENCES dw_stops(stop_id),
+    PRIMARY KEY (seq, initial_stop, final_stop)
+);
+
+INSERT INTO dw_routes(seq, node, edge, cost , initial_stop, final_stop)
+SELECT DISTINCT 
+    dijk.seq
+    dijk.node,
+    dijk.edge,
+    dijk.cost,
+    p.stop_id,
+    q.stop_id
+FROM 
+    dw_stops as p ,
+    dw_stops as q , 
+    LATERAL 
+    (
+        SELECT * 
+        FROM pgr_dijkstra(
+            'SELECT id, source, target, cost, reverse_cost FROM pg_routes',
+            (
+                SELECT id 
+                FROM pg_routes_vertices_pgr 
+                ORDER BY ST_Distance(the_geom, p.proj_stop_location) ASC 
+                LIMIT 1
+            ),
+            (
+                SELECT id 
+                FROM pg_routes_vertices_pgr 
+                ORDER BY ST_Distance(the_geom, q.proj_stop_location) ASC 
+                LIMIT 1
+            ),
+            directed := true
+        )
+    ) AS dijk;;
+
 CREATE TABLE dw_facts (
     time_id INTEGER REFERENCES dw_time(time_id),
     taxi_id INTEGER REFERENCES dw_taxi(taxi_id),
     initial_stop TEXT REFERENCES dw_stops(stop_id),
     final_stop TEXT REFERENCES dw_stops(stop_id),
+    route_id TEXT REFERENCES dw_route),
     number_of_trips INTEGER,
+    number_of_routes INTEGER,
     PRIMARY KEY (time_id, taxi_id, initial_stop, final_stop)
 );
 -- pg routing if doesnt work take out direction and leave the same way as before
@@ -77,37 +125,3 @@ CREATE TABLE pg_routes (
     geom geometry(LineString, 3763),
     PRIMARY KEY (route_id, direction)
 );
-
-INSERT INTO pg_routes (route_id, direction, geom)
-SELECT 
-    split_part(shape_id, '_', 1),
-    split_part(shape_id, '_', 2)direction,
-    proj_linestring
-FROM shapes;
--- THE GEOMETRY OF THE SAME ROUTE GOING FORWARDS AND BACKWARDS IS DIFFERENT DO I JUST DO ONE ?
-SELECT pgr_nodeNetwork('pg_routes', 0.00001, 'geom', 'route_id');
-
-UPDATE pg_routes
-SET cost = ST_Length(geom::geography),
-    reverse_cost = ST_Length(geom::geography);
-
-SELECT pgr_createTopology('pg_routes', 0.00001, 'geom', 'route_id');
-'''
-INSERT INTO dw_facts(time_id, taxi_id, initial_stop, final_stop)
-SELECT DISTINCT 
-    (SELECT time_id 
-     FROM dw_time 
-     WHERE hour = extract(hour FROM to_timestamp(ts.initial_ts)) 
-       AND date = date(to_timestamp(ts.initial_ts)) 
-       AND month = extract(month FROM to_timestamp(ts.initial_ts))),
-    ts.taxi_id,
-    (SELECT stop_id 
-     FROM dw_stops AS s 
-     ORDER BY st_distance(st_transform(initial_point :: geometry,3763), s.location) ASC 
-     LIMIT 1),
-    (SELECT stop_id 
-     FROM dw_stops AS s 
-     ORDER BY st_distance(st_transform(initial_point :: geometry,3763), s.location) ASC 
-     LIMIT 1)
-FROM taxi_services ts;
-'''

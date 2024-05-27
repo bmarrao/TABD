@@ -22,8 +22,33 @@ FROM shapes;
 -- THE GEOMETRY OF THE SAME ROUTE GOING FORWARDS AND BACKWARDS IS DIFFERENT DO I JUST DO ONE ?
 SELECT pgr_createTopology('pg_routes', 0.001, 'geom', clean := TRUE);
 UPDATE pg_routes
-SET cost = ST_Length(geom::geography),
-    reverse_cost = ST_Length(geom::geography);
+SET cost = ST_Length(geom),
+    reverse_cost = ST_Length(geom);
 
 
-SELECT pgr_createTopology('pg_routes', 0.00001, 'geom', 'id');
+SELECT 
+    dijk.seq, dijk.node, dijk.edge, dijk.cost
+FROM 
+    taxi_services AS ts,
+    LATERAL 
+    (
+        SELECT * 
+        FROM pgr_dijkstra(
+            'SELECT id, source, target, cost, reverse_cost FROM pg_routes',
+            (
+                SELECT id 
+                FROM pg_routes_vertices_pgr 
+                ORDER BY ST_Distance(the_geom, ST_Transform(ts.initial_point::geometry, 3763)) ASC 
+                LIMIT 1
+            ),
+            (
+                SELECT id 
+                FROM pg_routes_vertices_pgr 
+                ORDER BY ST_Distance(the_geom, ST_Transform(ts.final_point::geometry, 3763)) ASC 
+                LIMIT 1
+            ),
+            directed := true
+        )
+    ) AS dijk;
+
+
