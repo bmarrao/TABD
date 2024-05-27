@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS dw_time CASCADE;
 DROP TABLE IF EXISTS dw_taxi CASCADE;
 DROP TABLE IF EXISTS dw_stops CASCADE;
 DROP TABLE IF EXISTS dw_facts CASCADE;
-DROP TABLE IF EXISTS pg_routes CASCADE;
+DROP TABLE IF EXISTS dw_routes   CASCADE;
 
 
 CREATE TABLE dw_taxi 
@@ -61,6 +61,11 @@ SELECT DISTINCT
 FROM stops;
 
 
+-- Add proj_stop_location column if it does not exist
+ALTER TABLE dw_stops
+ADD COLUMN IF NOT EXISTS proj_stop_location geometry(Point, 4326);
+
+-- Create the dw_routes table
 CREATE TABLE dw_routes 
 (
     seq INTEGER,
@@ -72,9 +77,10 @@ CREATE TABLE dw_routes
     PRIMARY KEY (seq, initial_stop, final_stop)
 );
 
+-- Insert data into dw_routes
 INSERT INTO dw_routes(seq, node, edge, cost , initial_stop, final_stop)
 SELECT DISTINCT 
-    dijk.seq
+    dijk.seq,
     dijk.node,
     dijk.edge,
     dijk.cost,
@@ -102,26 +108,118 @@ FROM
             ),
             directed := true
         )
-    ) AS dijk;;
+    ) AS dijk;
+
+INSERT INTO dw_time(hour, date, month)
+SELECT DISTINCT 
+    extract(hour from to_timestamp(initial_ts)),
+    date(to_timestamp(initial_ts)),
+    extract(month from to_timestamp(initial_ts))
+FROM taxi_services 
+ORDER BY 1 DESC;
 
 CREATE TABLE dw_facts (
     time_id INTEGER REFERENCES dw_time(time_id),
     taxi_id INTEGER REFERENCES dw_taxi(taxi_id),
     initial_stop TEXT REFERENCES dw_stops(stop_id),
     final_stop TEXT REFERENCES dw_stops(stop_id),
-    route_id TEXT REFERENCES dw_route),
     number_of_trips INTEGER,
     number_of_routes INTEGER,
     PRIMARY KEY (time_id, taxi_id, initial_stop, final_stop)
 );
--- pg routing if doesnt work take out direction and leave the same way as before
-CREATE TABLE pg_routes (
-    route_id TEXT NOT NULL,
-    direction integer NOT NULL,
-    source integer,
-    target integer,
-    cost double precision,
-    reverse_cost double precision,
-    geom geometry(LineString, 3763),
-    PRIMARY KEY (route_id, direction)
-);
+
+
+INSERT INTO dw_facts(time_id, taxi_id, initial_stop,final_stop,number_of_trips)
+SELECT DISTINCT 
+    (
+        SELECT 
+            time_id 
+        from 
+            dw_time as t
+        WHERE 
+            t.date = date(to_timestamp(ts.initial_ts)),
+            t.hour = extract(hour from to_timestamp(ts.initial_ts)),
+            t.month= extract(month from to_timestamp(ts.initial_ts))
+    ),
+    ts.taxi_id,
+    (
+        SELECT 
+            stop_id 
+        from 
+            dw_stops as st 
+        ORDER BY 
+            st_distance(location, ST_Transform(ts.initial_point::geometry, 3763)) 
+        asc
+        LIMIT 
+        1
+    ),
+    (
+        SELECT 
+            stop_id 
+        from 
+            dw_stops as st 
+        ORDER BY 
+            st_distance(location, ST_Transform(ts.final_point::geometry, 3763)) 
+        asc
+        LIMIT 
+        1
+    ),
+    count(*)
+    ,
+    (
+        SELECT
+            seq 
+        FROM 
+            dw_routes _as rt
+        WHERE
+                rt.initial_stop =
+                (
+                    SELECT 
+                        stop_id 
+                    from 
+                        dw_stops as st 
+                    ORDER BY 
+                        st_distance(location, ST_Transform(ts.initial_point::geometry, 3763)) 
+                    asc
+                    LIMIT 
+                    1
+                ),
+                rt.final_stop =  
+                (
+                    SELECT 
+                        stop_id 
+                    from 
+                        dw_stops as st 
+                    ORDER BY 
+                        st_distance(location, ST_Transform(ts.final_point::geometry, 3763)) 
+                    asc
+                    LIMIT 
+                    1
+                ),
+
+             
+        ORDER BY seq DESC 
+        LIMIT 1
+    )
+
+
+
+FROM taxi_services as ts
+ORDER BY 1 DESC;
+
+INSERT INTO dw_stops(stop_id, stop_name, location, freguesia , concelho)
+SELECT DISTINCT 
+    stop_id,
+    stop_name,
+    proj_stop_location,
+    (select freguesia 
+    from cont_aad_caop2018 as p
+    where distrito = 'PORTO' 
+    ORDER BY st_distance(proj_stop_location, p.proj_boundary) asc
+    LIMIT 1),
+    (select concelho 
+    from cont_aad_caop2018 as p
+    where distrito = 'PORTO' 
+    ORDER BY st_distance(proj_stop_location, p.proj_boundary) asc
+    LIMIT 1)
+FROM stops;
