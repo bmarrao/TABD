@@ -107,6 +107,35 @@ with open("data/shapes.txt", 'r') as f:
 conn.commit()
 
 
+with open("data/shapes.txt", 'r') as f:
+        next(f) 
+        shape_id = None
+        shape_previous_point = (0,0)
+        route_id = None
+        direction = 0
+        for line in f:
+            fields = line.strip().split(",")
+            current_shape_id = fields[0]
+            shape_pt_lat = float(fields[1])
+            shape_pt_lon = float(fields[2])
+
+    
+            if current_shape_id != shape_id:
+                shape_id = current_shape_id
+                split = current_shape_id.split("_")
+                route_id = split[0]
+                direction = split[1]
+                shape_previous_point = (0,0)
+            if(shape_previous_point != (0,0)):
+                    linestring = f"LINESTRING({shape_previous_point[0]} {shape_previous_point[1]} , {shape_pt_lat}  {shape_pt_lon} )"
+                    cursor.execute(
+                        "INSERT INTO pg_routes (route_id, direction, geom) VALUES (%s,%s, ST_GeomFromText(%s, 4326))",
+                        (route_id,direction, linestring)
+                    )
+            shape_previous_point = (shape_pt_lat,shape_pt_lon)
+
+conn.commit()
+
 with open("data/transfers.txt", 'r') as f:
 
     next(f)

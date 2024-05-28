@@ -2,7 +2,20 @@ alter table shapes add proj_linestring geometry(LineString,3763);
 update shapes set proj_linestring = st_transform(shape_linestring::geometry,3763);
 
 alter table stops add proj_stop_location geometry(Point,3763);
-update stops set proj_stop_location = st_transform(stop_location::geometry,3763);DROP TABLE IF EXISTS dw_time CASCADE;
+update stops set proj_stop_location = st_transform(stop_location::geometry,3763);
+
+DROP TABLE IF EXISTS pg_routes_vertices_pgr CASCADE;
+DROP TABLE IF EXISTS pg_routes_edges_pgr CASCADE;
+
+alter table pg_routes add proj_geom geometry(LineString,3763);
+
+update pg_routes set proj_geom = st_transform(geom::geometry,3763);
+SELECT pgr_createTopology('pg_routes', 0.00001, 'proj_geom', clean := TRUE);
+
+UPDATE pg_routes
+SET cost = ST_Length(proj_geom),
+    reverse_cost = ST_Length(proj_geom);
+DROP TABLE IF EXISTS dw_time CASCADE;
 DROP TABLE IF EXISTS dw_taxi CASCADE;
 DROP TABLE IF EXISTS dw_stops CASCADE;
 DROP TABLE IF EXISTS dw_facts CASCADE;

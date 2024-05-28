@@ -6,6 +6,8 @@ DROP TABLE IF EXISTS calendar CASCADE;
 DROP TABLE IF EXISTS routes CASCADE;
 DROP TABLE IF EXISTS stops CASCADE;
 DROP TABLE IF EXISTS shapes CASCADE;
+DROP TABLE IF EXISTS pg_routes CASCADE;
+
 
 CREATE TABLE stops
 (
@@ -58,6 +60,18 @@ CREATE TABLE shapes
   shape_linestring geometry(LineString, 4326)
 );
 
+CREATE TABLE pg_routes 
+(
+    id SERIAL PRIMARY KEY,
+    route_id TEXT REFERENCES routes(route_id),
+    direction INTEGER NOT NULL,
+    source INTEGER,
+    target INTEGER,
+    cost DOUBLE PRECISION,
+    reverse_cost DOUBLE PRECISION,
+    geom GEOMETRY(LineString, 4326)
+);
+
 CREATE TABLE trips
 (
   trip_id           TEXT PRIMARY KEY,
@@ -96,9 +110,16 @@ CREATE TABLE transfers
   FOREIGN KEY (to_stop_id) REFERENCES stops(stop_id)
 );
 
-alter table shapes add proj_linestring geometry(LineString,3763);
-update shapes set proj_linestring = st_transform(shape_linestring::geometry,3763);
 
-alter table stops add proj_stop_location geometry(Point,3763);
-update stops set proj_stop_location = st_transform(stop_location::geometry,3763);
+CREATE TABLE pg_routes 
+(
+    id SERIAL PRIMARY KEY,
+    route_id TEXT REFERENCES routes(route_id),
+    direction INTEGER NOT NULL,
+    source INTEGER,
+    target INTEGER,
+    cost DOUBLE PRECISION,
+    reverse_cost DOUBLE PRECISION,
+    geom GEOMETRY(LineString, 4326)
+);
 
