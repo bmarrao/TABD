@@ -12,7 +12,7 @@ CREATE TABLE stops
   stop_id           TEXT PRIMARY KEY,
   stop_code         TEXT NULL,
   stop_name         TEXT NOT NULL,
-  stop_location     geometry(Point),
+  stop_location     geometry(Point,4326),
   zone_id           TEXT NULL,
   stop_url          TEXT NULL
 );
