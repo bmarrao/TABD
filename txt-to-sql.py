@@ -127,7 +127,7 @@ with open("data/shapes.txt", 'r') as f:
                 direction = split[1]
                 shape_previous_point = (0,0)
             if(shape_previous_point != (0,0)):
-                    linestring = f"LINESTRING({shape_previous_point[0]} {shape_previous_point[1]} , {shape_pt_lat}  {shape_pt_lon} )"
+                    linestring = f"LINESTRING({shape_previous_point[1]} {shape_previous_point[0]} , {shape_pt_lon}  {shape_pt_lat} )"
                     cursor.execute(
                         "INSERT INTO pg_routes (route_id, direction, geom) VALUES (%s,%s, ST_GeomFromText(%s, 4326))",
                         (route_id,direction, linestring)

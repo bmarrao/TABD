@@ -70,12 +70,15 @@ SELECT DISTINCT
      LIMIT 1)
 FROM stops;
 
+
 CREATE TABLE dw_facts (
     time_id INTEGER REFERENCES dw_time(time_id),
     taxi_id INTEGER REFERENCES dw_taxi(taxi_id),
     initial_stop TEXT REFERENCES dw_stops(stop_id),
     final_stop TEXT REFERENCES dw_stops(stop_id),
     number_of_trips INTEGER,
+    distance FLOAT ,
+    number_of_routes INTEGER,
     PRIMARY KEY (time_id, taxi_id, initial_stop, final_stop)
 );
 
@@ -86,16 +89,38 @@ WITH stop_matches AS
         ts.taxi_id,
         ts.initial_ts,
         (SELECT stop_id 
-         FROM dw_stops st 
+         FROM dw_stops as st 
          ORDER BY ST_Distance(st.location, ST_Transform(ts.initial_point::geometry, 3763)) ASC
          LIMIT 1) AS initial_stop,
         (SELECT stop_id 
-         FROM dw_stops st 
+         FROM dw_stops as st 
          ORDER BY ST_Distance(st.location, ST_Transform(ts.final_point::geometry, 3763)) ASC
          LIMIT 1) AS final_stop
     FROM 
         taxi_services ts
 )
+WITH matching_vertices as 
+(
+    sm.taxi_id,
+    sm.initial_ts, 
+    sm.initial_stop,
+    sm.final_stop ,
+    (SELECT id
+        FROM pg_routes_vertices_pgr vt
+        ORDER BY ST_Distance(vt.the_geom, (SELECT location FROM dw_stops WHERE sm.initial_stop == stop_id  )) ASC
+        LIMIT 1) AS first_vertice,
+    (SELECT id
+        FROM pg_routes_vertices_pgr vt
+        ORDER BY ST_Distance(vt.the_geom, (SELECT location FROM dw_stops WHERE sm.final_stop == stop_id  )) ASC
+        LIMIT 1) AS last_vertice
+    FROM 
+        stop_matches as sm
+)
+with dijkstra_result as 
+(
+
+)
+
 SELECT
     (SELECT time_id 
      FROM dw_time t
