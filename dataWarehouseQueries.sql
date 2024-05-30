@@ -36,7 +36,7 @@ SELECT
     month,
     SUM(number_of_trips) AS total_trips
 FROM dw_time_
-JOIN dw_facts_ ON dw_time_.time_id = dw_facts_.time_id
+JOIN dw_facts_ ON dw_time_.time_id = dw_facts_.initial_time_id
 GROUP BY ROLLUP (month)
 ORDER BY total_trips DESC
 LIMIT 10;
