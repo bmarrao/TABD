@@ -83,11 +83,15 @@ for boundary_coords in freguesias_boundaries:
     x_coords, y_coords = zip(*boundary_coords)
     ax.plot(x_coords, y_coords, color='blue')
 
-scat = ax.scatter(x[0], y[0], s=10, color='blue')
+scat = ax.scatter(x[0], y[0], s=15, color='black')
 scat_stops = ax.scatter(all_stops_xs, all_stops_ys, s=1, color='red')
 
 # Animation function
 anim = FuncAnimation(fig, animate, interval=1, frames=len(y) - 1)
 
+ax.set_title('Animation of all rourtes within porto')
+ax.set_xlabel('Longitude')
+ax.set_ylabel('Latitude')
+ax.legend()
 plt.draw()
 plt.show()

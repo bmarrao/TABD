@@ -193,7 +193,7 @@ with open("data/stop_times.txt", 'r') as f:
 
 conn.commit()
 
-
-
+cursor.execute("alter table shapes add proj_linestring geometry(LineString,3763);update shapes set proj_linestring = st_transform(shape_linestring::geometry,3763);")
+cursor.execute("alter table stops add proj_stop_location geometry(Point,3763);update stops set proj_stop_location = st_transform(stop_location::geometry,3763);")
 conn.commit()
 conn.close()

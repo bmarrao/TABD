@@ -1,7 +1,7 @@
 import psycopg2
 import matplotlib.pyplot as plt
 
-conn = psycopg2.connect("dbname=postgres user=Ricardo port=5434")
+conn = psycopg2.connect("dbname=postgres user=brenin")
 
 cursor = conn.cursor()
 
@@ -19,8 +19,8 @@ print(counts)
 
 plt.figure(figsize=(10, 6))
 plt.bar(service_ids, counts, color='blue')
-plt.title('')
-plt.xlabel('zones')
+plt.title('Ocasions when there are more buses')
+plt.xlabel('Ocasion')
 plt.ylabel('Frequency')
 plt.draw()
 plt.show()

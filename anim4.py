@@ -1,7 +1,7 @@
 import psycopg2
 import matplotlib.pyplot as plt
 
-conn = psycopg2.connect("dbname=postgres user=Ricardo port=5434")
+conn = psycopg2.connect("dbname=postgres user=brenin")
 
 cursor = conn.cursor()
 

@@ -37,7 +37,7 @@ for freguesia, geom_wkt in results_freguesias:
 
 for boundary_coords in freguesias_boundaries:
     x, y = zip(*boundary_coords)
-    ax.plot(x, y, color='blue')
+    ax.plot(x, y, color='black')
 
 num_routes = len(results_routes)
 cmap = plt.cm.hsv  
@@ -53,8 +53,8 @@ for i, row in enumerate(results_routes):
         xs.append(float(x))
         ys.append(float(y))  
     color = cmap(norm(i))
-    ax.plot(xs, ys, color=color, marker='o', markersize=1)
-ax.set_title('Freguesias within the Municipality of Porto with Stop Locations')
+    ax.plot(xs, ys, color=color, marker='o', markersize=0.2)
+ax.set_title('All bus routes within Porto')
 ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
 
